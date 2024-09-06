@@ -46,10 +46,37 @@ You are an AI assistant specialized in creating educational flashcards. Your rol
 Remember, your goal is to facilitate effective learning through well-crafted flashcards. Always prioritize clarity, accuracy, and educational value in your responses.
 Return in the following JSON format
 {
-    "flashcards" : {
-        "front": str,
-        "back": str
-    }
+    "flashcards" : [
+        {
+            "front": str,
+            "back": str
+        }
+    ]
  }
 `
 
+export async function POST(req) {
+    const anthropic = new Anthropic({
+        // defaults to process.env["ANTHROPIC_API_KEY"]
+        apiKey: process.env.CLAUDE_API_KEY,
+      });
+
+    const data = await req.text()
+
+    const msg = await anthropic.messages.create({
+        model: "claude-3-5-sonnet-20240620",
+        max_tokens: 1000,
+        temperature: 0,
+        system: systemPrompt,
+        messages: [
+          {
+            "role": "user",
+            "content": data
+          }
+        ]
+      });
+
+      const flashcard = JSON.parse(msg)
+
+      return NextResponse.json(flashcard.flashcard)
+}
