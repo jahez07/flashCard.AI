@@ -1,94 +1,198 @@
-import Image from "next/image";
 
-export default function Home() {
+"use client";
+import React from "react";
+import { SignedOut, SignedIn, UserButton, useUser } from '@clerk/clerk-react';
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  Box,
+  Grid,
+  Grow,
+  Paper,
+  Card,
+  CardContent,
+  CardActions,
+} from "@mui/material";
+import Container from "@mui/material/Container";
+import { motion } from "framer-motion";
+import getStripe from "./utils/get-stripe";
+import { useRouter } from 'next/navigation';
+
+const HomePage = () => {
+  const { user } = useUser();
+  const username = user ? user.firstName : '';
+  const router = useRouter()
+const handleSubmit = async () => {
+  if (!user){
+    router.push(`/sign-in`)
+  }
+  const checkoutSession = await fetch("/api/checkout_sessions", {
+    method: "POST",
+    headers: { origin: "http://localhost:3001" },
+  });
+  const checkoutSessionJson = await checkoutSession.json();
+
+  const stripe = await getStripe();
+  const { error } = await stripe.redirectToCheckout({
+    sessionId: checkoutSessionJson.id,
+  });
+
+  if (error) {
+    console.warn(error.message);
+  }
+};
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>app/page.js</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <Container maxWidth="100vw" sx={{ bgcolor: '#121212', color: '#FFF' }}>
+      {/* Navigation Bar */}
+      <AppBar  maxWidth="100%" position="static" sx={{ backgroundColor: '#1E1E1E' }}>
+        <Toolbar>
+        <Typography variant="h6" sx={{ flexGrow: 1, color: '#FFA500', href:"/"}}>
+          <a href='/' style={{ textDecoration: 'none' }}>
+            CardCraftr
+          </a>
+          </Typography>
+          <SignedOut>
+            <Button color="inherit" href="/sign-in" sx={{ color: '#FFF' }}>
+              Login
+            </Button>
+            <Button color="inherit" href="/sign-up" sx={{ color: '#FFF' }}>
+              Sign Up
+            </Button>
+          </SignedOut>
+          <SignedIn>
+            <Typography sx={{ mr: 2, color: '#FFA500' }}>Hello, {username}</Typography>
+            <UserButton />
+          </SignedIn>
+        </Toolbar>
+      </AppBar>
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      {/* Hero Section */}
+      <Box sx={{ textAlign: "center", mt: 8 }}>
+        <motion.div
+          initial={{ y: -50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8 }}
+        >
+          <Typography variant="h2" gutterBottom sx={{ color: '#FFA500' }}>
+            Welcome to CardCraftr
+          </Typography>
+          <Typography variant="h5" gutterBottom sx={{ color: '#FFF' }}>
+            The easiest way to create flashcards from your text.
+          </Typography>
+        </motion.div>
+        <motion.div
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.5, duration: 0.8 }}
+        >
+          <Button
+            variant="contained"
+            sx={{ mt: 4, mr: 2, bgcolor: '#FFA500', color: '#121212','&:hover': {
+      bgcolor: '#f0b74f', 
+      borderColor:'#121212',
+    }  }}
+            href="/generate"
           >
-            <Image
-              className={styles.logo}
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
+            Get Started
+          </Button>
+          <Button
+            variant="outlined"
+            sx={{ mt: 4, borderColor: '#FFA500', color: '#FFA500',
+              '&:hover': {
+                borderColor:'#d18700' , 
+                }
+             }}
           >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+            Learn More
+          </Button>
+        </motion.div>
+      </Box>
+
+      {/* Features Section */}
+      <Box sx={{ my: 8 }}>
+        <Typography variant="h4" align="center" gutterBottom sx={{ color: '#FFA500' }}>
+          Features
+        </Typography>
+        <Grid container spacing={4} justifyContent="center">
+          <Grid item xs={12} sm={6} md={4}>
+            <Grow in>
+              <Paper elevation={4} sx={{ padding: 4, bgcolor: '#1E1E1E', color: '#FFF' }}>
+                <Typography variant="h6" gutterBottom sx={{ color: '#FFA500' }}>
+                  Easy to Use
+                </Typography>
+                <Typography>
+                  Intuitive interface designed for effortless flashcard creation.
+                </Typography>
+              </Paper>
+            </Grow>
+          </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <Grow in timeout={1000}>
+              <Paper elevation={4} sx={{ padding: 4, bgcolor: '#1E1E1E', color: '#FFF' }}>
+                <Typography variant="h6" gutterBottom sx={{ color: '#FFA500' }}>
+                  AI-Powered Flashcards
+                </Typography>
+                <Typography>
+                  Automatically generate flashcards with AI from any text.
+                </Typography>
+              </Paper>
+            </Grow>
+          </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <Grow in timeout={1500}>
+              <Paper elevation={4} sx={{ padding: 4, bgcolor: '#1E1E1E', color: '#FFF' }}>
+                <Typography variant="h6" gutterBottom sx={{ color: '#FFA500' }}>
+                  Cloud Storage
+                </Typography>
+                <Typography>
+                  Save your flashcards securely in the cloud for easy access.
+                </Typography>
+              </Paper>
+            </Grow>
+          </Grid>
+        </Grid>
+      </Box>
+
+      {/* Pricing Section */}
+      <Box sx={{ my: 8, textAlign: "center" }}>
+        <Typography variant="h4" gutterBottom sx={{ color: '#FFA500' }}>
+          Pricing
+        </Typography>
+        <Grid container spacing={4} justifyContent="center">
+          <Grid item xs={12} sm={6} md={4}>
+            <motion.div whileHover={{ scale: 1.05 }}>
+              <Card raised sx={{ bgcolor: '#1E1E1E', color: '#FFF' }}>
+                <CardContent>
+                  <Typography variant="h5" component="div" sx={{ color: '#FFA500' }}>
+                    Ultimate Plan - $10/month
+                  </Typography>
+                  <Typography sx={{ mt: 2 }}>
+                    Get full access to CardCraftr: unlimited flashcards, AI-powered creation, and secure cloud storage.
+                  </Typography>
+                </CardContent>
+                <CardActions>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    sx={{ bgcolor: '#FFA500', color: '#121212','&:hover': {
+      bgcolor: '#f0b74f', 
+      borderColor:'#121212',
+    }  }}
+                    onClick={handleSubmit}
+                  >
+                    Start Your Journey
+                  </Button>
+                </CardActions>
+              </Card>
+            </motion.div>
+          </Grid>
+        </Grid>
+      </Box>
+    </Container>
   );
-}
+};
+
+export default HomePage;
